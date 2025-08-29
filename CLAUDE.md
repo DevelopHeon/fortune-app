@@ -4,19 +4,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-FitnessTracker - 개인 운동 기록 관리 시스템: 개인의 운동 기록을 체계적으로 관리하고 진행률을 시각화하여 운동 목표 달성을 돕는 풀스택 웹 애플리케이션
+FortuneApp - 사주, 타로, 운세 서비스: 사용자의 생년월일과 생시 정보를 바탕으로 ChatGPT API를 통해 전문적인 사주 해석을 제공하는 웹 애플리케이션
 
 ## Technology Stack
 
 ### Backend
-- Spring Boot 3.2+, Gradle, H2/MySQL, Spring Data JPA, Spring Security + JWT
+- Spring Boot 3.2+, Gradle, H2/MySQL, Spring Data JPA
+- External API: OpenAI ChatGPT API
 - Testing: JUnit 5, MockMvc
 - Documentation: Swagger/OpenAPI 3
 
 ### Frontend
-- React 18+ with TypeScript, Vite, React Query + Zustand
-- UI: Material-UI or Ant Design
-- Charts: Chart.js with react-chartjs-2
+- React 18+ with TypeScript, Vite
+- UI: Material-UI or Ant Design (카드 디자인, 모달 컴포넌트)
+- State Management: Context API or Zustand
 
 ### Development Tools
 - Docker, Docker Compose, concurrently, ESLint, Prettier
@@ -44,57 +45,54 @@ cd client && npm test
 ## Project Structure
 
 ```
-fitness-tracker/
-├── client/                    # React + TypeScript Frontend (FSD Architecture)
+fortune-app/
+├── client/                    # React + TypeScript Frontend
 │   ├── src/
-│   │   ├── app/              # App Layer - 앱 설정 및 초기화
-│   │   │   ├── providers/    # React Context, React Query, Router providers
-│   │   │   ├── store/        # Global state store (Zustand)
-│   │   │   ├── styles/       # Global styles, theme
-│   │   │   └── App.tsx       # App component
-│   │   ├── pages/            # Pages Layer - 라우팅 페이지
-│   │   │   ├── auth/         # 인증 페이지 (login, register)
-│   │   │   ├── dashboard/    # 대시보드 페이지
-│   │   │   ├── workouts/     # 운동 관련 페이지
-│   │   │   ├── goals/        # 목표 관리 페이지
-│   │   │   ├── statistics/   # 통계 페이지
-│   │   │   └── profile/      # 프로필 페이지
-│   │   ├── widgets/          # Widgets Layer - 독립적인 UI 블록
-│   │   │   ├── workout-form/ # 운동 입력 폼 위젯
-│   │   │   ├── goal-progress/# 목표 진행률 위젯
-│   │   │   ├── charts/       # 차트 위젯들
-│   │   │   └── navigation/   # 네비게이션 위젯
-│   │   ├── features/         # Features Layer - 비즈니스 로직과 UI
-│   │   │   ├── auth/         # 인증 기능 (login, register, logout)
-│   │   │   ├── workout/      # 운동 관리 기능
-│   │   │   ├── exercise/     # 운동 종목 관리 기능
-│   │   │   ├── goal/         # 목표 관리 기능
-│   │   │   ├── statistics/   # 통계 기능
-│   │   │   └── profile/      # 프로필 관리 기능
-│   │   ├── entities/         # Entities Layer - 비즈니스 엔티티
-│   │   │   ├── user/         # User 엔티티 (model, api, types)
-│   │   │   ├── workout/      # Workout 엔티티
-│   │   │   ├── exercise/     # Exercise 엔티티
-│   │   │   ├── goal/         # Goal 엔티티
-│   │   │   └── statistics/   # Statistics 엔티티
-│   │   └── shared/           # Shared Layer - 공통 코드
-│   │       ├── api/          # API 설정 (axios instance, interceptors)
-│   │       ├── config/       # 앱 설정 (constants, env)
-│   │       ├── lib/          # 외부 라이브러리 설정 (react-query, chart.js)
-│   │       ├── ui/           # 공통 UI 컴포넌트 (Button, Input, Modal 등)
-│   │       └── utils/        # 공통 유틸리티 함수
+│   │   ├── components/       # React Components
+│   │   │   ├── cards/        # 운세 타입 카드 컴포넌트들
+│   │   │   │   ├── FortuneCard.tsx      # 사주 카드
+│   │   │   │   ├── TarotCard.tsx        # 타로 카드 (비활성)
+│   │   │   │   └── DailyFortuneCard.tsx # 오늘의 운세 카드 (비활성)
+│   │   │   ├── modals/       # 모달 컴포넌트들
+│   │   │   │   └── BirthInfoModal.tsx   # 생년월일/생시 입력 모달
+│   │   │   ├── results/      # 결과 표시 컴포넌트들
+│   │   │   │   └── FortuneResult.tsx    # 사주 결과 표시
+│   │   │   └── common/       # 공통 컴포넌트들
+│   │   │       ├── Button.tsx
+│   │   │       ├── Input.tsx
+│   │   │       └── Modal.tsx
+│   │   ├── pages/           # 페이지 컴포넌트들
+│   │   │   ├── Home.tsx     # 메인 페이지 (카드 선택)
+│   │   │   └── Fortune.tsx  # 사주 페이지
+│   │   ├── services/        # API 서비스
+│   │   │   └── fortuneService.ts # 사주 API 호출
+│   │   ├── types/           # TypeScript 타입 정의
+│   │   │   └── fortune.ts   # 사주 관련 타입들
+│   │   ├── utils/           # 유틸리티 함수들
+│   │   │   └── dateUtils.ts # 날짜 관련 유틸리티
+│   │   ├── styles/          # 스타일 파일들
+│   │   │   └── globals.css
+│   │   └── App.tsx          # 메인 App 컴포넌트
 │   └── package.json
 ├── server/                   # Spring Boot Backend
-│   ├── src/main/java/com/fitness/tracker/
+│   ├── src/main/java/com/fortune/app/
 │   │   ├── controller/      # REST API Controllers
+│   │   │   └── FortuneController.java    # 사주 API 컨트롤러
 │   │   ├── service/         # Business Logic Services
-│   │   ├── repository/      # Data Access Layer
-│   │   ├── entity/          # JPA Entities
-│   │   ├── dto/            # Data Transfer Objects (request/response)
-│   │   ├── security/        # JWT Security Configuration
-│   │   ├── exception/       # Exception Handling
-│   │   └── config/          # Spring Configuration
-│   ├── src/main/resources/  # Application Properties, SQL Scripts
+│   │   │   ├── FortuneService.java       # 사주 서비스
+│   │   │   └── OpenAIService.java        # ChatGPT API 서비스
+│   │   ├── dto/            # Data Transfer Objects
+│   │   │   ├── BirthInfoRequest.java     # 생년월일/생시 요청 DTO
+│   │   │   └── FortuneResponse.java      # 사주 응답 DTO
+│   │   ├── config/          # Spring Configuration
+│   │   │   ├── OpenAIConfig.java         # OpenAI API 설정
+│   │   │   └── CorsConfig.java           # CORS 설정
+│   │   └── exception/       # Exception Handling
+│   │       └── GlobalExceptionHandler.java
+│   ├── src/main/resources/  # Application Properties
+│   │   ├── application.yml              # 앱 설정
+│   │   └── prompts/                     # ChatGPT 프롬프트 템플릿
+│   │       └── saju-prompt.txt          # 사주 전문 프롬프트
 │   └── build.gradle
 ├── docs/                    # Documentation
 ├── docker-compose.yml
@@ -103,94 +101,68 @@ fitness-tracker/
 
 ## Core Features
 
-1. **Authentication**: JWT 기반 회원가입/로그인/프로필 관리
-2. **Exercise Management**: 운동 종목 관리, 운동 세션 생성, 운동 기록 입력/조회
-3. **Goal Tracking**: 다양한 목표 유형 설정, 목표 진행률 추적 및 시각화
-4. **Data Visualization**: 운동량/근력 진행/체성분 변화 차트
-5. **Analytics**: 운동 패턴 분석, 성과 리포트, 비교 분석
+1. **Fortune Type Selection**: 메인 페이지에서 사주, 타로, 오늘의 운세 카드 선택 (1단계에서는 사주만 활성화)
+2. **Birth Information Input**: 생년월일, 생시, 성별 입력을 위한 모달 인터페이스
+3. **AI-Powered Fortune Reading**: ChatGPT API를 통한 전문적인 사주 해석
+4. **Professional Fortune Analysis**: 사주 전문 프롬프트를 활용한 정확하고 상세한 해석
+5. **Responsive Design**: 모바일 친화적인 카드 기반 UI 디자인
 
 ## API Endpoints
 
-- **Auth**: `/api/auth/*` (register, login, refresh, logout)
-- **Users**: `/api/users/*` (profile management)
-- **Exercises**: `/api/exercises/*` (exercise CRUD)
-- **Workouts**: `/api/workouts/*` (workout sessions and records)
-- **Goals**: `/api/goals/*` (goal setting and tracking)  
-- **Statistics**: `/api/statistics/*` (analytics and reports)
-- **Body Composition**: `/api/body-composition/*` (body metrics)
+- **Fortune**: `/api/fortune/saju` (사주 해석 요청)
+- **Health**: `/api/health` (서버 상태 확인)
 
-## Test Users
+## User Flow
 
-- Email: test@example.com
-- Password: password123
+1. 메인 페이지 진입 → 3개 카드 중 사주 카드만 활성화 상태
+2. 사주 카드 클릭 → 생년월일/생시 입력 모달 표시
+3. 정보 입력 완료 → ChatGPT API 호출하여 사주 해석
+4. 전문적인 사주 결과 표시
 
-## Frontend Architecture: Feature-Sliced Design (FSD)
+## ChatGPT Integration
 
-FSD는 프론트엔드 프로젝트를 계층과 슬라이스로 구조화하는 아키텍처 방법론입니다.
+### 전문 사주 프롬프트 구성
 
-### FSD 계층 구조 (상위 → 하위)
+사주 해석의 전문성을 위해 다음 요소들을 포함한 프롬프트를 사용:
 
-1. **app/** - 앱 설정 및 초기화
-   - 전역 providers, 라우터, 스토어 설정
-   - 전역 스타일 및 테마
+1. **전문가 역할 설정**: "당신은 30년 경력의 전문 사주명리학자입니다"
+2. **해석 체계**: 천간지지, 오행, 십신 등 전통 사주 이론 기반
+3. **상세 분석**: 성격, 건강, 직업운, 재물운, 인간관계, 연애운 등 포함
+4. **실용적 조언**: 구체적이고 실행 가능한 개선 방안 제시
 
-2. **pages/** - 라우팅 페이지 
-   - 각 라우트에 대응하는 페이지 컴포넌트
-   - URL과 1:1 매칭되는 구조
-
-3. **widgets/** - 독립적인 UI 블록
-   - 여러 features를 조합한 복합 UI 컴포넌트
-   - 재사용 가능한 위젯들
-
-4. **features/** - 비즈니스 기능
-   - 사용자 행동과 연결된 기능 단위
-   - UI + 로직이 함께 있는 완전한 기능
-
-5. **entities/** - 비즈니스 엔티티
-   - 도메인 모델과 관련된 코드
-   - API 호출, 타입 정의, 비즈니스 로직
-
-6. **shared/** - 공통 코드
-   - 프로젝트 전반에서 사용하는 공통 요소
-   - UI 컴포넌트, 유틸리티, 설정
-
-### 계층별 Import 규칙
-
-- **상위 계층은 하위 계층만 import 가능**
-- **같은 계층 내에서는 import 금지**
-- **shared는 모든 계층에서 import 가능**
-
-### 슬라이스 내부 구조 (Segment)
-
-각 슬라이스는 다음과 같은 세그먼트로 구성:
+### API 호출 플로우
 
 ```
-feature/auth/
-├── ui/           # UI 컴포넌트
-├── model/        # 상태 관리, 비즈니스 로직
-├── api/          # API 호출 함수
-├── lib/          # 해당 기능 전용 유틸리티
-├── config/       # 설정 파일
-└── index.ts      # Public API (외부 노출 인터페이스)
+사용자 입력 (생년월일, 생시, 성별)
+    ↓
+Spring Boot Backend
+    ↓
+ChatGPT API 호출 (전문 프롬프트 + 사용자 정보)
+    ↓
+AI 사주 해석 결과 수신
+    ↓
+프론트엔드로 결과 전송
+    ↓
+사용자에게 사주 결과 표시
 ```
 
 ## Development Guidelines
 
 ### Backend
-- Follow Spring Boot conventions for backend development
-- Implement proper error handling and validation
-- Follow security best practices (JWT, CORS, input validation)
-- Write unit tests for services and controllers
+- OpenAI API 키 보안 관리 (환경변수 사용)
+- ChatGPT API 호출 에러 처리 및 재시도 로직
+- 사용자 입력 검증 (생년월일 형식, 생시 범위 등)
+- API 응답 시간 최적화 (비동기 처리)
+- CORS 설정으로 프론트엔드와 연동
 
-### Frontend (FSD Architecture)
-- **Import 규칙**: 상위 계층만 하위 계층을 import
-- **Public API**: 각 슬라이스는 index.ts를 통해서만 외부 노출
-- **Segment 분리**: UI, model, api, lib를 명확히 분리
-- **TypeScript strict mode** 사용
-- **Shared UI 컴포넌트** 일관성 있게 사용
-- **Features는 독립적**으로 개발 (다른 feature 직접 참조 금지)
+### Frontend
+- **Component 기반 설계**: 카드, 모달, 결과 표시 등 재사용 가능한 컴포넌트
+- **TypeScript 타입 안정성**: 사주 관련 타입 정의 및 API 응답 타입 검증
+- **반응형 디자인**: 모바일 우선 카드 레이아웃
+- **사용자 경험**: 로딩 상태, 에러 처리, 직관적인 UI/UX
+- **상태 관리**: Context API 또는 Zustand로 모달 상태, API 호출 상태 관리
 
-# FitnessTracker 개발 체크리스트
+# FortuneApp 개발 체크리스트
 
 ## Phase 1: 프로젝트 초기 설정
 
@@ -198,249 +170,213 @@ feature/auth/
 - [x] 루트 디렉토리 구성 (client/, server/, docs/)
 - [x] 루트 package.json 생성 (개발 스크립트용)
 - [x] .gitignore 파일 설정
-- [x] README.md 작성
+- [ ] README.md 수정 (Fortune App 내용으로)
 - [x] docker-compose.yml 설정
 
 ### 2. 백엔드 프로젝트 설정 (Spring Boot)
 - [x] Spring Initializr로 프로젝트 생성
-- [x] build.gradle 의존성 추가
+- [ ] build.gradle 의존성 수정
   - [x] Spring Boot Web
-  - [x] Spring Data JPA
-  - [x] Spring Security
-  - [x] JWT 의존성
-  - [x] H2/MySQL 의존성
-  - [x] Validation 의존성
-  - [x] Swagger 의존성
-- [x] 패키지 구조 생성 (controller, service, repository, entity, dto, config, security, exception)
-- [x] application.yml 설정 (dev, prod 프로필)
+  - [ ] OpenAI API 클라이언트 의존성
+  - [ ] Validation 의존성
+  - [ ] Swagger 의존성
+  - [ ] H2 의존성 (개발용)
+- [ ] 패키지 구조 수정 (com.fortune.app)
+  - [ ] controller/ (FortuneController)
+  - [ ] service/ (FortuneService, OpenAIService)
+  - [ ] dto/ (BirthInfoRequest, FortuneResponse)
+  - [ ] config/ (OpenAIConfig, CorsConfig)
+  - [ ] exception/ (GlobalExceptionHandler)
+- [ ] application.yml 설정 (OpenAI API 키 등)
 
-### 3. 프론트엔드 프로젝트 설정 (React + TypeScript + FSD)
+### 3. 프론트엔드 프로젝트 설정 (React + TypeScript)
 - [ ] Vite로 React TypeScript 프로젝트 생성
 - [ ] 의존성 추가
-  - [ ] React Router
-  - [ ] React Query
-  - [ ] Zustand
-  - [ ] Material-UI 또는 Ant Design
-  - [ ] Chart.js + react-chartjs-2
-  - [ ] Axios
-  - [ ] date-fns
+  - [ ] React Router (페이지 라우팅용)
+  - [ ] Material-UI 또는 Ant Design (카드, 모달 UI)
+  - [ ] Axios (API 호출)
+  - [ ] date-fns (날짜 처리)
 - [ ] TypeScript 설정 (strict mode)
-- [ ] ESLint, Prettier 설정 + FSD import 규칙
-- [ ] FSD 폴더 구조 생성
-  - [ ] app/ (providers, store, styles)
-  - [ ] pages/ (auth, dashboard, workouts, goals, statistics, profile)
-  - [ ] widgets/ (workout-form, goal-progress, charts, navigation)
-  - [ ] features/ (auth, workout, exercise, goal, statistics, profile)
-  - [ ] entities/ (user, workout, exercise, goal, statistics)
-  - [ ] shared/ (api, config, lib, ui, utils)
+- [ ] ESLint, Prettier 설정
+- [ ] 컴포넌트 폴더 구조 생성
+  - [ ] components/cards/ (Fortune, Tarot, Daily 카드)
+  - [ ] components/modals/ (BirthInfoModal)
+  - [ ] components/results/ (FortuneResult)
+  - [ ] components/common/ (Button, Input, Modal)
+  - [ ] pages/ (Home, Fortune)
+  - [ ] services/ (fortuneService)
+  - [ ] types/ (fortune 타입들)
+  - [ ] utils/ (dateUtils)
 
 ## Phase 2: 백엔드 개발
 
-### 1. 데이터베이스 설계
-- [ ] BaseEntity 생성 (공통 필드)
-- [ ] User 엔티티 생성
-- [ ] Exercise 엔티티 생성
-- [ ] WorkoutSession 엔티티 생성
-- [ ] WorkoutRecord 엔티티 생성
-- [ ] Goal 엔티티 생성
-- [ ] BodyComposition 엔티티 생성
-- [ ] 엔티티 관계 설정 (JPA 연관관계)
-- [ ] 데이터베이스 스키마 생성 및 검증
+### 1. OpenAI API 연동 설정
+- [ ] OpenAI API 클라이언트 라이브러리 설정
+- [ ] OpenAIConfig 클래스 생성 (API 키 관리)
+- [ ] application.yml에 OpenAI API 키 설정
+- [ ] API 호출 테스트용 간단한 서비스 구현
 
-### 2. 보안 설정
-- [ ] JWT 설정 클래스 생성
-- [ ] JwtTokenProvider 구현
-- [ ] JwtAuthenticationFilter 구현
-- [ ] UserDetailsService 구현
-- [ ] SecurityConfig 설정
-- [ ] CORS 설정
-- [ ] 비밀번호 암호화 설정
+### 2. DTO 클래스 생성
+- [ ] BirthInfoRequest DTO (생년월일, 생시, 성별)
+  - [ ] 입력 검증 어노테이션 추가 (@NotNull, @Valid 등)
+- [ ] FortuneResponse DTO (사주 해석 결과)
+- [ ] ErrorResponse DTO (에러 응답용)
 
-### 3. Repository 레이어
-- [ ] UserRepository 생성
-- [ ] ExerciseRepository 생성
-- [ ] WorkoutSessionRepository 생성
-- [ ] WorkoutRecordRepository 생성
-- [ ] GoalRepository 생성
-- [ ] BodyCompositionRepository 생성
-- [ ] 커스텀 쿼리 메서드 작성
+### 3. 사주 전문 프롬프트 작성
+- [ ] prompts/saju-prompt.txt 파일 생성
+- [ ] 전문 사주명리학자 역할 설정
+- [ ] 천간지지, 오행, 십신 기반 해석 체계 포함
+- [ ] 성격, 건강, 운세, 조언 등 종합적 분석 템플릿
 
-### 4. DTO 클래스
-- [ ] Request DTO 생성 (AuthRequest, RegisterRequest, WorkoutSessionRequest 등)
-- [ ] Response DTO 생성 (AuthResponse, UserResponse, WorkoutSessionResponse 등)
-- [ ] DTO 검증 어노테이션 추가
+### 4. Service 레이어
+- [ ] OpenAIService 구현
+  - [ ] ChatGPT API 호출 메서드
+  - [ ] 프롬프트 템플릿 로딩
+  - [ ] API 에러 처리 및 재시도 로직
+- [ ] FortuneService 구현
+  - [ ] 생년월일 검증 로직
+  - [ ] OpenAI API 결과 후처리
+  - [ ] 사주 해석 결과 포매팅
 
-### 5. Service 레이어
-- [ ] UserService 구현
-- [ ] AuthService 구현
-- [ ] ExerciseService 구현
-- [ ] WorkoutService 구현
-- [ ] GoalService 구현
-- [ ] StatisticsService 구현
-- [ ] BodyCompositionService 구현
+### 5. Controller 레이어
+- [ ] FortuneController 구현
+  - [ ] POST /api/fortune/saju 엔드포인트
+  - [ ] GET /api/health 헬스체크 엔드포인트
+  - [ ] 요청/응답 검증
+  - [ ] 에러 핸들링
 
-### 6. Controller 레이어
-- [ ] AuthController 구현
-- [ ] UserController 구현
-- [ ] ExerciseController 구현
-- [ ] WorkoutController 구현
-- [ ] GoalController 구현
-- [ ] StatisticsController 구현
-- [ ] BodyCompositionController 구현
-
-### 7. 예외 처리 및 설정
+### 6. 예외 처리 및 설정
 - [ ] GlobalExceptionHandler 구현
-- [ ] 커스텀 예외 클래스 생성
-- [ ] Swagger 설정
-- [ ] 초기 데이터 설정 (data.sql)
+  - [ ] OpenAI API 에러 처리
+  - [ ] 입력 검증 에러 처리
+  - [ ] 일반적인 서버 에러 처리
+- [ ] CorsConfig 설정 (프론트엔드 연동용)
+- [ ] Swagger 설정 (API 문서화)
 
-## Phase 3: 프론트엔드 개발 (FSD Architecture)
+## Phase 3: 프론트엔드 개발
 
-### 1. Shared Layer 구성
-- [ ] shared/api - Axios 인스턴스 설정 (interceptor 포함)
-- [ ] shared/config - 앱 설정 (constants, env)
-- [ ] shared/lib - 외부 라이브러리 설정 (react-query, chart.js)
-- [ ] shared/ui - 공통 UI 컴포넌트 (Button, Input, Modal, Card 등)
-- [ ] shared/utils - 공통 유틸리티 함수 (date, validation 등)
+### 1. 공통 컴포넌트 개발
+- [ ] components/common/Button.tsx
+  - [ ] 기본 스타일링, 로딩 상태 지원
+- [ ] components/common/Modal.tsx
+  - [ ] 모달 베이스 컴포넌트, 오버레이 처리
+- [ ] components/common/Input.tsx
+  - [ ] 날짜/시간 입력 지원, 검증 스타일링
 
-### 2. Entities Layer 구성  
-- [ ] entities/user - User 엔티티 (model, api, types)
-- [ ] entities/workout - Workout 엔티티 (model, api, types)
-- [ ] entities/exercise - Exercise 엔티티 (model, api, types)
-- [ ] entities/goal - Goal 엔티티 (model, api, types)
-- [ ] entities/statistics - Statistics 엔티티 (model, api, types)
+### 2. 카드 컴포넌트 개발
+- [ ] components/cards/FortuneCard.tsx
+  - [ ] 사주 카드 디자인 (활성 상태)
+  - [ ] 클릭 이벤트 처리
+- [ ] components/cards/TarotCard.tsx
+  - [ ] 타로 카드 디자인 (비활성 상태)
+  - [ ] "준비중" 표시
+- [ ] components/cards/DailyFortuneCard.tsx
+  - [ ] 오늘의 운세 카드 (비활성 상태)
+  - [ ] "준비중" 표시
 
-### 3. Features Layer 구성
-- [ ] features/auth - 인증 기능 (login, register, logout)
-  - [ ] ui/ - LoginForm, RegisterForm 컴포넌트
-  - [ ] model/ - 인증 상태 관리 (Zustand)
-  - [ ] api/ - 인증 API 함수들
-- [ ] features/workout - 운동 관리 기능
-  - [ ] ui/ - WorkoutForm, WorkoutList, WorkoutCard
-  - [ ] model/ - 운동 상태 관리
-- [ ] features/exercise - 운동 종목 관리 기능
-  - [ ] ui/ - ExerciseSelector, ExerciseList
-- [ ] features/goal - 목표 관리 기능
-  - [ ] ui/ - GoalForm, GoalList, GoalProgress
-- [ ] features/statistics - 통계 기능
-  - [ ] ui/ - Chart 컴포넌트들
-- [ ] features/profile - 프로필 관리 기능
-  - [ ] ui/ - Profile, ProfileEdit
+### 3. 모달 컴포넌트 개발
+- [ ] components/modals/BirthInfoModal.tsx
+  - [ ] 생년월일 입력 필드 (DatePicker)
+  - [ ] 생시 입력 필드 (시/분 선택)
+  - [ ] 성별 선택 라디오 버튼
+  - [ ] 입력 검증 및 에러 처리
+  - [ ] 제출 버튼과 로딩 상태
 
-### 4. Widgets Layer 구성
-- [ ] widgets/workout-form - 운동 입력 폼 위젯 (features/workout + features/exercise 조합)
-- [ ] widgets/goal-progress - 목표 진행률 위젯 (features/goal + entities/statistics)
-- [ ] widgets/charts - 차트 위젯들 (features/statistics 활용)
-  - [ ] WorkoutVolumeChart
-  - [ ] StrengthProgressChart  
-  - [ ] BodyCompositionChart
-- [ ] widgets/navigation - 네비게이션 위젯 (Header, Sidebar)
+### 4. 결과 표시 컴포넌트
+- [ ] components/results/FortuneResult.tsx
+  - [ ] 사주 해석 결과 표시
+  - [ ] 섹션별 정리 (성격, 운세, 조언 등)
+  - [ ] 스크롤 가능한 긴 텍스트 처리
+  - [ ] 공유 기능 (선택사항)
 
-### 5. Pages Layer 구성
-- [ ] pages/auth - 인증 페이지들 (features/auth 활용)
-- [ ] pages/dashboard - 대시보드 페이지 (여러 widgets 조합)
-- [ ] pages/workouts - 운동 관련 페이지들
-- [ ] pages/goals - 목표 관리 페이지들
-- [ ] pages/statistics - 통계 페이지
-- [ ] pages/profile - 프로필 페이지
+### 5. 페이지 구성
+- [ ] pages/Home.tsx
+  - [ ] 3개 카드 그리드 레이아웃
+  - [ ] 카드 상태 관리 (활성/비활성)
+  - [ ] 모달 상태 관리
+- [ ] pages/Fortune.tsx
+  - [ ] 사주 결과 페이지
+  - [ ] 뒤로가기 버튼
+  - [ ] 새로운 사주 보기 버튼
 
-### 6. App Layer 구성
-- [ ] app/providers - React Context, React Query, Router providers
-- [ ] app/store - 전역 상태 스토어 설정
-- [ ] app/styles - 전역 스타일, 테마 설정
-- [ ] App.tsx - 메인 App 컴포넌트
+### 6. 서비스 및 타입
+- [ ] services/fortuneService.ts
+  - [ ] API 호출 함수들
+  - [ ] 에러 처리 및 재시도 로직
+- [ ] types/fortune.ts
+  - [ ] BirthInfo, FortuneResult 등 타입 정의
+- [ ] utils/dateUtils.ts
+  - [ ] 날짜 검증, 포매팅 유틸리티
+
+### 7. 라우팅 및 상태 관리
+- [ ] App.tsx 라우터 설정
+- [ ] Context 또는 Zustand로 전역 상태 관리
+- [ ] 로딩, 에러 상태 관리
 
 ## Phase 4: 통합 및 테스트
 
 ### 1. 백엔드 테스트
-- [ ] 단위 테스트 (Service 레이어)
-- [ ] 통합 테스트 (Controller 레이어)
-- [ ] Repository 테스트
-- [ ] 보안 테스트
+- [ ] OpenAI API 연동 테스트
+- [ ] 입력 검증 테스트 (잘못된 생년월일, 생시 등)
+- [ ] 에러 처리 테스트 (API 실패, 타임아웃 등)
+- [ ] Controller 레이어 통합 테스트
 
 ### 2. 프론트엔드 테스트
-- [ ] 컴포넌트 단위 테스트
-- [ ] API 통합 테스트
-- [ ] E2E 테스트 기본 시나리오
+- [ ] 카드 컴포넌트 렌더링 테스트
+- [ ] 모달 상태 관리 테스트
+- [ ] 사용자 입력 검증 테스트
+- [ ] API 호출 및 에러 처리 테스트
 
-### 3. API 통합 테스트
-- [ ] 인증 API 테스트
-- [ ] 운동 관리 API 테스트
-- [ ] 목표 관리 API 테스트
-- [ ] 통계 API 테스트
+### 3. 전체 시스템 통합 테스트
+- [ ] 사주 카드 클릭 → 모달 열기 → 정보 입력 → 결과 표시 플로우 테스트
+- [ ] API 응답 시간 측정 (ChatGPT API 호출 시간)
+- [ ] 다양한 생년월일/생시 조합으로 테스트
 
 ## Phase 5: 배포 및 최적화
 
-### 1. Docker 설정
-- [ ] 백엔드 Dockerfile
-- [ ] 프론트엔드 Dockerfile
-- [ ] docker-compose 운영 버전
-- [ ] 환경 변수 설정
+### 1. 환경 설정
+- [ ] 개발/운영 환경별 설정 분리
+- [ ] OpenAI API 키 보안 관리
+- [ ] CORS 설정으로 프론트엔드 연동
 
 ### 2. 성능 최적화
-- [ ] JPA N+1 문제 해결
-- [ ] 데이터베이스 인덱스 최적화
-- [ ] React 컴포넌트 최적화 (memo, useMemo, useCallback)
-- [ ] API 응답 캐싱
+- [ ] ChatGPT API 호출 최적화 (타임아웃, 재시도)
+- [ ] 프론트엔드 번들 사이즈 최적화
+- [ ] 이미지 최적화 (카드 아이콘 등)
 
-### 3. 보안 강화
-- [ ] HTTPS 설정
-- [ ] 입력 검증 강화
-- [ ] SQL Injection 방지 확인
-- [ ] XSS 방지 확인
-
-### 4. 사용자 경험 개선
-- [ ] 로딩 상태 처리
-- [ ] 에러 상태 처리
-- [ ] 반응형 디자인 확인
-- [ ] 접근성 개선
-
-## Phase 6: 문서화 및 최종 검토
-
-### 1. API 문서화
-- [ ] Swagger UI 확인
-- [ ] API 사용 가이드 작성
-- [ ] Postman 컬렉션 생성
-
-### 2. 개발 문서화
-- [ ] 설치 및 실행 가이드
-- [ ] 개발 환경 설정 가이드
-- [ ] 코드 컨벤션 문서
-- [ ] 트러블슈팅 가이드
-
-### 3. 최종 검토
-- [ ] 모든 기능 요구사항 구현 확인
-- [ ] 코드 품질 검토 (ESLint, SonarQube)
-- [ ] 보안 취약점 점검
-- [ ] 성능 테스트 수행
+### 3. 사용자 경험 개선
+- [ ] 로딩 상태 처리 (AI 응답 대기 중)
+- [ ] 에러 메시지 사용자 친화적으로 개선
+- [ ] 반응형 디자인 완성 (모바일 우선)
+- [ ] 접근성 개선 (키보드 탐색, 스크린 리더)
 
 ## 성공 기준 체크리스트
 
 ### 기능적 요구사항
-- [ ] 사용자 회원가입/로그인이 정상 동작한다
-- [ ] 운동 기록을 입력하고 조회할 수 있다
-- [ ] 목표를 설정하고 진행률을 확인할 수 있다
-- [ ] 운동 데이터가 차트로 시각화된다
-- [ ] 모든 CRUD 작업이 정상 동작한다
+- [ ] 메인 페이지에서 사주 카드만 활성화 상태로 표시
+- [ ] 사주 카드 클릭 시 생년월일/생시 입력 모달 정상 작동
+- [ ] ChatGPT API 통해 전문적인 사주 해석 결과 표시
+- [ ] 타로/오늘의 운세 카드는 "준비중" 상태로 비활성화
+- [ ] 모든 사용자 입력 검증 및 에러 처리 완료
 
 ### 비기능적 요구사항
-- [ ] 모바일 기기에서 정상 동작한다 (반응형)
-- [ ] API 응답 시간이 500ms 이내이다
-- [ ] 사용자 인터페이스가 직관적이다
-- [ ] 에러 상황이 적절히 처리된다
-- [ ] 보안 취약점이 없다
+- [ ] 모바일 기기에서 카드 레이아웃 정상 작동 (반응형)
+- [ ] ChatGPT API 응답 시간 30초 이내 (타임아웃 처리)
+- [ ] 직관적인 UI/UX (모달, 카드 인터랙션)
+- [ ] API 에러 상황 적절히 처리 및 사용자 안내
+- [ ] OpenAI API 키 보안 관리
 
 ### 개발 품질
-- [ ] 코드 커버리지 80% 이상
-- [ ] ESLint/Prettier 규칙을 준수한다
-- [ ] API 문서가 Swagger로 자동 생성된다
-- [ ] Git 커밋 메시지가 컨벤션을 따른다
-- [ ] README 문서가 명확하고 상세하다
+- [ ] TypeScript 타입 안정성 확보
+- [ ] ESLint/Prettier 규칙 준수
+- [ ] 컴포넌트 재사용성 고려
+- [ ] Git 커밋 메시지 컨벤션 따르기
+- [ ] README 문서 Fortune App 내용으로 업데이트
 
 ## 확장 기능 (Phase 2)
-- [ ] 운동 루틴 템플릿 시스템
-- [ ] 운동 추천 알고리즘
-- [ ] 사진 업로드 및 Before/After 비교
-- [ ] 푸시 알림 시스템
-- [ ] 소셜 기능 (친구, 그룹 챌린지)
-- [ ] 고급 분석 (ML 기반 부상 위험 예측)
+- [ ] 사용자 계정 시스템 (로그인/회원가입)
+- [ ] 사주 기록 저장 및 조회 기능
+- [ ] 타로 카드 해석 기능 추가
+- [ ] 오늘의 운세 기능 추가
+- [ ] 사주 결과 공유 기능 (SNS, 링크 공유)
+- [ ] 프리미엄 기능 (더 상세한 해석, 궁합 등)

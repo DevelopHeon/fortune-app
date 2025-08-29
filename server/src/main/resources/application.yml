@@ -1,24 +1,19 @@
 spring:
   application:
-    name: fitness-tracker
+    name: fortune-app
 
   profiles:
     active: dev
 
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.H2Dialect
-
-  data:
-    redis:
-      host: localhost
-      port: 6379
-      timeout: 2000ms
+  # Spring AI OpenAI Configuration
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:your-api-key-here}
+      chat:
+        options:
+          model: gpt-3.5-turbo
+          max-tokens: 2000
+          temperature: 0.7
 
 server:
   port: 8080
@@ -27,20 +22,19 @@ server:
 
 logging:
   level:
-    com.fitness.tracker: DEBUG
-    org.springframework.security: DEBUG
+    com.fortune.app: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.ai: DEBUG
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info
 
-# JWT Configuration
-jwt:
-  secret: mySecretKey123456789012345678901234567890
-  expiration: 86400000 # 24 hours in milliseconds
-  refresh-expiration: 604800000 # 7 days in milliseconds
+# CORS Configuration
+cors:
+  allowed-origins: http://localhost:5173,http://localhost:5174
 
 # Swagger Configuration
 springdoc:
