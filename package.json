@@ -1,0 +1,31 @@
+{
+  "name": "fitness-tracker",
+  "version": "1.0.0",
+  "description": "FitnessTracker - 개인 운동 기록 관리 시스템",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
+    "server:dev": "cd server && ./gradlew bootRun",
+    "client:dev": "cd client && npm run dev",
+    "server:build": "cd server && ./gradlew build",
+    "client:build": "cd client && npm run build",
+    "build": "npm run server:build && npm run client:build",
+    "docker:dev": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "test": "npm run server:test && npm run client:test",
+    "server:test": "cd server && ./gradlew test",
+    "client:test": "cd client && npm test"
+  },
+  "keywords": [
+    "fitness",
+    "exercise",
+    "workout",
+    "tracking",
+    "health"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

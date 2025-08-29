@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: fitness-tracker-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: fitness_tracker
+      MYSQL_USER: fitness_user
+      MYSQL_PASSWORD: fitness_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./server/src/main/resources/sql:/docker-entrypoint-initdb.d
+    networks:
+      - fitness-network
+
+  # Redis for caching
+  redis:
+    image: redis:7-alpine
+    container_name: fitness-tracker-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - fitness-network
+
+  # Adminer for database management (optional)
+  adminer:
+    image: adminer:latest
+    container_name: fitness-tracker-adminer
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: mysql
+    networks:
+      - fitness-network
+    depends_on:
+      - mysql
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  fitness-network:
+    driver: bridge
