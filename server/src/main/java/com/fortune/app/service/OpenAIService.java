@@ -1,6 +1,6 @@
 package com.fortune.app.service;
 
-import com.fortune.app.dto.BirthInfoRequest;
+import com.fortune.app.dto.AnalyzeFortuneRequest;
 import com.fortune.app.exception.OpenAIException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,21 +37,21 @@ public class OpenAIService {
      * 사주 해석 요청을 ChatGPT API로 전송
      */
     @Retryable(value = {OpenAIException.class}, maxAttempts = 3, backoff = @Backoff(delay = 1000))
-    public String getSajuFortune(BirthInfoRequest birthInfo) {
+    public String getSajuFortune(AnalyzeFortuneRequest request) {
         try {
             String promptTemplate = loadPromptTemplate();
             
             Map<String, Object> variables = Map.of(
-                    "gender", birthInfo.getGender().getDescription(),
-                    "birthDate", birthInfo.getBirthDate().toString(),
-                    "birthTime", formatBirthTime(birthInfo.getBirthTime())
+                    "gender", request.getGender().getDescription(),
+                    "birthDate", request.getBirthDate(),
+                    "birthTime", formatBirthTime(request.getBirthTime())
             );
             
             PromptTemplate template = new PromptTemplate(promptTemplate, variables);
             Prompt prompt = template.create();
             
             log.info("사주 해석 요청 - 생년월일: {}, 성별: {}", 
-                     birthInfo.getBirthDate(), birthInfo.getGender());
+                     request.getBirthDate(), request.getGender());
             
             ChatResponse response = chatModel.call(prompt);
             
@@ -83,7 +83,7 @@ public class OpenAIService {
      * 오늘의 운세 해석 요청을 ChatGPT API로 전송
      */
     @Retryable(value = {OpenAIException.class}, maxAttempts = 3, backoff = @Backoff(delay = 1000))
-    public String getDailyFortune(BirthInfoRequest birthInfo) {
+    public String getDailyFortune(AnalyzeFortuneRequest request) {
         try {
             String promptTemplate = loadDailyFortunePromptTemplate();
             
@@ -91,16 +91,16 @@ public class OpenAIService {
             
             Map<String, Object> variables = Map.of(
                     "currentDate", currentDate,
-                    "gender", birthInfo.getGender().getDescription(),
-                    "birthDate", birthInfo.getBirthDate(),
-                    "birthTime", formatBirthTime(birthInfo.getBirthTime())
+                    "gender", request.getGender().getDescription(),
+                    "birthDate", request.getBirthDate(),
+                    "birthTime", formatBirthTime(request.getBirthTime())
             );
             
             PromptTemplate template = new PromptTemplate(promptTemplate, variables);
             Prompt prompt = template.create();
             
             log.info("오늘의 운세 해석 요청 - 날짜: {}, 생년월일: {}, 성별: {}", 
-                     currentDate, birthInfo.getBirthDate(), birthInfo.getGender());
+                     currentDate, request.getBirthDate(), request.getGender());
             
             ChatResponse response = chatModel.call(prompt);
             

@@ -15,16 +15,13 @@ public class FortuneResponse {
     
     private String fortuneType;
     private String result;
-    private BirthInfoSummary birthInfo;
     private LocalDateTime createdAt;
-    
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class BirthInfoSummary {
-        private String birthDate;
-        private String birthTime;
-        private String gender;
+
+    public static FortuneResponse of(String fortuneTypeName, String fortuneResult) {
+        return FortuneResponse.builder()
+                .fortuneType(fortuneTypeName)
+                .result(fortuneResult)
+                .createdAt(LocalDateTime.now())
+                .build();
     }
 }

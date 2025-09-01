@@ -7,10 +7,11 @@ export const Gender = {
 export type Gender = typeof Gender[keyof typeof Gender];
 
 // 생년월일 정보 타입
-export interface BirthInfo {
+export interface AnalyzeFortuneRequest {
   birthDate: string; // YYYY-MM-DD 형식
   birthTime: string; // HH:mm 형식
   gender: Gender;
+  fortuneType: FortuneType;
 }
 
 // 사주 해석 응답 타입
@@ -28,9 +29,9 @@ export interface ErrorResponse {
 
 // 운세 카드 타입
 export const FortuneType = {
-  SAJU: 'saju',
-  TAROT: 'tarot',
-  DAILY: 'daily'
+  SAJU: 'SAJU',
+  TAROT: 'TAROT',
+  DAILY: 'DAILY'
 } as const;
 
 export type FortuneType = typeof FortuneType[keyof typeof FortuneType];

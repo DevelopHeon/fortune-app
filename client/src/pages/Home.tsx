@@ -9,9 +9,9 @@ import FortuneCard from '../components/cards/FortuneCard';
 import BirthInfoModal from '../components/modals/BirthInfoModal';
 import DailyFortuneResult from '../components/results/DailyFortuneResult';
 import SajuFortuneResult from '../components/results/SajuFortuneResult';
-import type { FortuneCard as FortuneCardType, BirthInfo, FortuneResponse, ApiState } from '../types/fortune';
+import type { FortuneCard as FortuneCardType, AnalyzeFortuneRequest, FortuneResponse, ApiState } from '../types/fortune';
 import { FortuneType } from '../types/fortune';
-import { getSajuFortune, getDailyFortune } from '../services/fortuneService';
+import { analyzeFortune } from '../services/fortuneService';
 
 // 운세 카드 데이터
 const fortuneCards: FortuneCardType[] = [
@@ -69,19 +69,12 @@ const Home: React.FC = () => {
     setApiState(prev => ({ ...prev, error: null }));
   };
 
-  // 운세 해석 요청 (사주 또는 오늘의 운세)
-  const handleFortuneSubmit = async (birthInfo: BirthInfo, selectedCard: FortuneCardType) => {
+  // 운세 해석 요청 (통합 API)
+  const handleFortuneSubmit = async (birthInfo: AnalyzeFortuneRequest) => {
     setApiState({ data: null, loading: true, error: null });
 
     try {
-      let result: FortuneResponse;
-      if (selectedCard.type === FortuneType.SAJU) {
-        result = await getSajuFortune(birthInfo);
-      } else if (selectedCard.type === FortuneType.DAILY) {
-        result = await getDailyFortune(birthInfo);
-      } else {
-        throw new Error('지원하지 않는 운세 유형입니다');
-      }
+      const result = await analyzeFortune(birthInfo);
       
       setApiState({ data: result, loading: false, error: null });
       setModalOpen(false);
@@ -192,9 +185,10 @@ const Home: React.FC = () => {
       <BirthInfoModal
         open={modalOpen}
         onClose={handleModalClose}
-        onSubmit={(birthInfo) => selectedCard && handleFortuneSubmit(birthInfo, selectedCard)}
+        onSubmit={handleFortuneSubmit}
         loading={apiState.loading}
         error={apiState.error}
+        fortuneType={selectedCard?.type || FortuneType.SAJU}
       />
 
       {/* 스낵바 (알림) */}
