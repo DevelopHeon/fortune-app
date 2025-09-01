@@ -16,6 +16,8 @@ import org.springframework.retry.annotation.Retryable;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 @Service
@@ -27,6 +29,9 @@ public class OpenAIService {
     
     @Value("classpath:/prompts/saju-prompt.txt")
     private Resource sajuPromptResource;
+    
+    @Value("classpath:/prompts/daily-fortune-prompt.txt")
+    private Resource dailyFortunePromptResource;
     
     /**
      * 사주 해석 요청을 ChatGPT API로 전송
@@ -75,7 +80,56 @@ public class OpenAIService {
     }
     
     /**
-     * 프롬프트 템플릿 파일 로드
+     * 오늘의 운세 해석 요청을 ChatGPT API로 전송
+     */
+    @Retryable(value = {OpenAIException.class}, maxAttempts = 3, backoff = @Backoff(delay = 1000))
+    public String getDailyFortune(BirthInfoRequest birthInfo) {
+        try {
+            String promptTemplate = loadDailyFortunePromptTemplate();
+            
+            String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy년 MM월 dd일 (E)", java.util.Locale.KOREAN));
+            
+            Map<String, Object> variables = Map.of(
+                    "currentDate", currentDate,
+                    "gender", birthInfo.getGender().getDescription(),
+                    "birthDate", birthInfo.getBirthDate(),
+                    "birthTime", formatBirthTime(birthInfo.getBirthTime())
+            );
+            
+            PromptTemplate template = new PromptTemplate(promptTemplate, variables);
+            Prompt prompt = template.create();
+            
+            log.info("오늘의 운세 해석 요청 - 날짜: {}, 생년월일: {}, 성별: {}", 
+                     currentDate, birthInfo.getBirthDate(), birthInfo.getGender());
+            
+            ChatResponse response = chatModel.call(prompt);
+            
+            if (response == null || response.getResult() == null || 
+                response.getResult().getOutput() == null) {
+                throw new OpenAIException("OpenAI API에서 유효하지 않은 응답을 받았습니다");
+            }
+            
+            String result = response.getResult().getOutput().getContent();
+            
+            if (result == null || result.trim().isEmpty()) {
+                throw new OpenAIException("OpenAI API에서 빈 응답을 받았습니다");
+            }
+            
+            log.info("오늘의 운세 해석 응답 수신 완료 - 길이: {} 글자", result.length());
+            
+            return result;
+            
+        } catch (OpenAIException e) {
+            log.error("OpenAI API 호출 중 오류 발생", e);
+            throw e;
+        } catch (Exception e) {
+            log.error("오늘의 운세 해석 중 예상치 못한 오류 발생", e);
+            throw new OpenAIException("오늘의 운세 해석 서비스 오류: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * 사주 프롬프트 템플릿 파일 로드
      */
     private String loadPromptTemplate() throws IOException {
         try {
@@ -83,6 +137,18 @@ public class OpenAIService {
         } catch (IOException e) {
             log.error("사주 프롬프트 템플릿 로드 실패", e);
             throw new OpenAIException("프롬프트 템플릿을 로드할 수 없습니다", e);
+        }
+    }
+    
+    /**
+     * 오늘의 운세 프롬프트 템플릿 파일 로드
+     */
+    private String loadDailyFortunePromptTemplate() throws IOException {
+        try {
+            return dailyFortunePromptResource.getContentAsString(StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            log.error("오늘의 운세 프롬프트 템플릿 로드 실패", e);
+            throw new OpenAIException("오늘의 운세 프롬프트 템플릿을 로드할 수 없습니다", e);
         }
     }
     

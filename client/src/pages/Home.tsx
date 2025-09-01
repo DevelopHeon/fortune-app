@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
 import {
-  Container,
   Typography,
-  Grid,
   Box,
   Alert,
   Snackbar,
 } from '@mui/material';
 import FortuneCard from '../components/cards/FortuneCard';
 import BirthInfoModal from '../components/modals/BirthInfoModal';
-import FortuneResult from '../components/results/FortuneResult';
+import DailyFortuneResult from '../components/results/DailyFortuneResult';
+import SajuFortuneResult from '../components/results/SajuFortuneResult';
 import type { FortuneCard as FortuneCardType, BirthInfo, FortuneResponse, ApiState } from '../types/fortune';
 import { FortuneType } from '../types/fortune';
-import { getSajuFortune } from '../services/fortuneService';
+import { getSajuFortune, getDailyFortune } from '../services/fortuneService';
 
 // 운세 카드 데이터
 const fortuneCards: FortuneCardType[] = [
@@ -24,6 +23,13 @@ const fortuneCards: FortuneCardType[] = [
     enabled: true,
   },
   {
+    type: FortuneType.DAILY,
+    title: '오늘의 운세',
+    description: '오늘 하루의 운세와 조언을 확인해보세요',
+    icon: '🌟',
+    enabled: true,
+  },
+  {
     type: FortuneType.TAROT,
     title: '타로 운세',
     description: '카드를 통해 현재 상황과 미래를 점쳐보세요',
@@ -31,19 +37,11 @@ const fortuneCards: FortuneCardType[] = [
     enabled: false,
     comingSoon: true,
   },
-  {
-    type: FortuneType.DAILY,
-    title: '오늘의 운세',
-    description: '오늘 하루의 운세와 조언을 확인해보세요',
-    icon: '🌟',
-    enabled: false,
-    comingSoon: true,
-  },
 ];
 
 const Home: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
-  const [, setSelectedCard] = useState<FortuneCardType | null>(null);
+  const [selectedCard, setSelectedCard] = useState<FortuneCardType | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '' });
 
@@ -59,7 +57,7 @@ const Home: React.FC = () => {
     if (!card.enabled) return;
 
     setSelectedCard(card);
-    if (card.type === FortuneType.SAJU) {
+    if (card.type === FortuneType.SAJU || card.type === FortuneType.DAILY) {
       setModalOpen(true);
     }
   };
@@ -71,17 +69,25 @@ const Home: React.FC = () => {
     setApiState(prev => ({ ...prev, error: null }));
   };
 
-  // 사주 해석 요청
-  const handleSajuSubmit = async (birthInfo: BirthInfo) => {
+  // 운세 해석 요청 (사주 또는 오늘의 운세)
+  const handleFortuneSubmit = async (birthInfo: BirthInfo, selectedCard: FortuneCardType) => {
     setApiState({ data: null, loading: true, error: null });
 
     try {
-      const result = await getSajuFortune(birthInfo);
+      let result: FortuneResponse;
+      if (selectedCard.type === FortuneType.SAJU) {
+        result = await getSajuFortune(birthInfo);
+      } else if (selectedCard.type === FortuneType.DAILY) {
+        result = await getDailyFortune(birthInfo);
+      } else {
+        throw new Error('지원하지 않는 운세 유형입니다');
+      }
+      
       setApiState({ data: result, loading: false, error: null });
       setModalOpen(false);
       setShowResult(true);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '사주 해석 중 오류가 발생했습니다';
+      const errorMessage = error instanceof Error ? error.message : '운세 해석 중 오류가 발생했습니다';
       setApiState({ data: null, loading: false, error: errorMessage });
     }
   };
@@ -105,19 +111,34 @@ const Home: React.FC = () => {
   };
 
   // 결과 화면 표시
-  if (showResult && apiState.data) {
-    return (
-      <FortuneResult
-        result={apiState.data}
-        onBack={handleBackToHome}
-        onRetry={handleRetry}
-      />
-    );
+  if (showResult && apiState.data && selectedCard) {
+    // 오늘의 운세인 경우 DailyFortuneResult 사용
+    if (selectedCard.type === FortuneType.DAILY) {
+      return (
+        <DailyFortuneResult
+          result={apiState.data}
+          onBack={handleBackToHome}
+          onRetry={handleRetry}
+        />
+      );
+    }
+    
+    // 사주는 SajuFortuneResult 사용
+    if (selectedCard.type === FortuneType.SAJU) {
+      return (
+        <SajuFortuneResult
+          result={apiState.data}
+          onBack={handleBackToHome}
+          onRetry={handleRetry}
+        />
+      );
+    }
+
   }
 
   // 메인 화면
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 4, px: 2 }}>
       {/* 헤더 */}
       <Box sx={{ textAlign: 'center', mb: 6 }}>
         <Typography variant="h2" component="h1" sx={{ 
@@ -140,24 +161,30 @@ const Home: React.FC = () => {
       </Box>
 
       {/* 카드 그리드 */}
-      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-        <Grid container spacing={4} justifyContent="center" sx={{ maxWidth: 1000 }}>
-          {fortuneCards.map((card) => (
-            <Grid item xs={12} sm={6} md={4} key={card.type} sx={{ display: 'flex', justifyContent: 'center' }}>
-              <FortuneCard
-                card={card}
-                onClick={() => handleCardClick(card)}
-              />
-            </Grid>
-          ))}
-        </Grid>
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center',
+        gap: { xs: 2, sm: 3 }, 
+        flexWrap: 'wrap',
+        width: '100%',
+        maxWidth: '1000px'
+      }}>
+        {fortuneCards.map((card) => (
+          <Box key={card.type} sx={{ flex: '0 0 auto' }}>
+            <FortuneCard
+              card={card}
+              onClick={() => handleCardClick(card)}
+            />
+          </Box>
+        ))}
       </Box>
 
       {/* 안내 메시지 */}
-      <Box sx={{ mt: 6, textAlign: 'center' }}>
+      <Box sx={{ mt: 6, textAlign: 'center', width: '100%' }}>
         <Alert severity="info" sx={{ maxWidth: 600, mx: 'auto' }}>
-          현재 <strong>사주 운세</strong>만 이용 가능합니다. 
-          타로 운세와 오늘의 운세는 곧 만나보실 수 있습니다! 🚀
+          현재 <strong>사주 운세</strong>와 <strong>오늘의 운세</strong>를 이용하실 수 있습니다. 
+          타로 운세는 곧 만나보실 수 있습니다! 🚀
         </Alert>
       </Box>
 
@@ -165,7 +192,7 @@ const Home: React.FC = () => {
       <BirthInfoModal
         open={modalOpen}
         onClose={handleModalClose}
-        onSubmit={handleSajuSubmit}
+        onSubmit={(birthInfo) => selectedCard && handleFortuneSubmit(birthInfo, selectedCard)}
         loading={apiState.loading}
         error={apiState.error}
       />
@@ -181,7 +208,7 @@ const Home: React.FC = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </Container>
+    </Box>
   );
 };
 

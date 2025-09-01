@@ -51,14 +51,17 @@ export const getSajuFortune = async (birthInfo: BirthInfo): Promise<FortuneRespo
   }
 };
 
-// 서버 상태 확인
-export const checkHealthStatus = async (): Promise<{ status: string }> => {
+// 오늘의 운세 해석 요청
+export const getDailyFortune = async (birthInfo: BirthInfo): Promise<FortuneResponse> => {
   try {
-    const response = await api.get<{ status: string }>('/health');
+    const response = await api.post<FortuneResponse>('/fortune/daily', birthInfo);
     return response.data;
   } catch (error) {
-    console.error('Health check failed:', error);
-    throw new Error('서버 연결을 확인할 수 없습니다');
+    if (axios.isAxiosError(error) && error.response) {
+      const errorResponse = error.response.data as ErrorResponse;
+      throw new Error(errorResponse.message || '오늘의 운세 해석 중 오류가 발생했습니다');
+    }
+    throw new Error('네트워크 오류가 발생했습니다');
   }
 };
 

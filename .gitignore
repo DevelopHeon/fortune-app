@@ -56,6 +56,22 @@ server/.gradle/
 server/gradle/
 server/gradlew
 server/gradlew.bat
+.gradle/
+**/build/
+gradle-app.setting
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+.gradletasknamecache
+
+# Gradle cache and execution files
+.gradle/**/*
+**/executionHistory.bin
+**/executionHistory.lock
+**/fileHashes.bin
+**/fileHashes.lock
+**/buildOutputCleanup.lock
+**/file-system.probe
+gradle/wrapper/gradle-wrapper.jar
 
 # Spring Boot
 server/target/

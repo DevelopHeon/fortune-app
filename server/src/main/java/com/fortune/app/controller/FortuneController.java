@@ -36,10 +36,26 @@ public class FortuneController {
     })
     public ResponseEntity<FortuneResponse> getSajuFortune(@Valid @RequestBody BirthInfoRequest request) {
         
-        log.info("사주 해석 요청 - 생년월일: {}, 성별: {}", 
-                request.getBirthDate(), request.getGender());
+        log.info("사주 해석 요청 - 생년월일: {}, 성별: {}", request.getBirthDate(), request.getGender());
         
         FortuneResponse response = fortuneService.getSajuFortune(request);
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    @PostMapping("/daily")
+    @Operation(summary = "오늘의 운세", description = "생년월일, 생시, 성별 정보를 바탕으로 오늘의 운세를 해석합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "오늘의 운세 해석 성공",
+                content = @Content(schema = @Schema(implementation = FortuneResponse.class))),
+        @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터"),
+        @ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    public ResponseEntity<FortuneResponse> getDailyFortune(@Valid @RequestBody BirthInfoRequest request) {
+        
+        log.info("오늘의 운세 요청 - 생년월일: {}, 성별: {}", request.getBirthDate(), request.getGender());
+        
+        FortuneResponse response = fortuneService.getDailyFortune(request);
         
         return ResponseEntity.ok(response);
     }

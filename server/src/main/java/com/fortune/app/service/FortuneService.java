@@ -49,6 +49,35 @@ public class FortuneService {
     }
     
     /**
+     * 오늘의 운세 해석 서비스
+     */
+    public FortuneResponse getDailyFortune(BirthInfoRequest request) {
+        log.info("오늘의 운세 요청 처리 시작 - 생년월일: {}", request.getBirthDate());
+        
+        // 입력 데이터 검증
+        validateBirthInfo(request);
+        
+        // OpenAI API 호출하여 오늘의 운세 해석
+        String fortuneResult = openAIService.getDailyFortune(request);
+        
+        // 응답 DTO 구성
+        FortuneResponse response = FortuneResponse.builder()
+                .fortuneType("오늘의 운세")
+                .result(fortuneResult)
+                .birthInfo(FortuneResponse.BirthInfoSummary.builder()
+                        .birthDate(request.getBirthDate())
+                        .birthTime(request.getBirthTime())
+                        .gender(request.getGender().getDescription())
+                        .build())
+                .createdAt(LocalDateTime.now())
+                .build();
+        
+        log.info("오늘의 운세 요청 처리 완료 - 결과 길이: {} 글자", fortuneResult.length());
+        
+        return response;
+    }
+    
+    /**
      * 생년월일 및 생시 유효성 검증
      */
     private void validateBirthInfo(BirthInfoRequest request) {
